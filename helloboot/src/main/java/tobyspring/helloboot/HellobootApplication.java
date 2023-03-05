@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
 import org.springframework.boot.web.server.WebServer;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 
 public class HellobootApplication {
@@ -18,17 +19,33 @@ public class HellobootApplication {
 		TomcatServletWebServerFactory serverFactory = new TomcatServletWebServerFactory();
 		
 		WebServer webServer = serverFactory.getWebServer(servletContext ->{
-			servletContext.addServlet("hello", new HttpServlet() {
+			HelloController helloController = new HelloController();
+			
+			servletContext.addServlet("frontcontroller", new HttpServlet() {
 				
 				@Override
 				protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException{
-					String name = req.getParameter("name");
+					//auth, secure, incoding, common ...
 					
-					resp.setStatus(HttpStatus.OK.value());
-					resp.setHeader("Content-Type", "text/plain");
-					resp.getWriter().println("hello servlet: " + name);
+					if (req.getRequestURI().equals("/hello") && req.getMethod().equals(HttpMethod.GET.name()) ) {
+						String name = req.getParameter("name");
+						
+						String ret = helloController.hello(name);// binding -> web 요청을 java 형식으로 바꿔준다.
+						
+						resp.setStatus(HttpStatus.OK.value());//default = ok
+						resp.setHeader("Content-Type", "text/plain");
+						resp.getWriter().println(ret);
+					
+					} 
+					else if (req.getRequestURI().equals("/user")) {
+						
+					} 
+					else {
+						resp.setStatus(HttpStatus.NOT_FOUND.value());
+					}
+					
 				}
-			}).addMapping("/hello");
+			}).addMapping("/*");
 			
 		});
 		
